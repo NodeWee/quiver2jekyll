@@ -1,0 +1,9 @@
+{
+  "title": "IF条件控制语句",
+  "cells": [
+    {
+      "type": "markdown",
+      "data": "{jkfn:if-statement}\n\n基本语法：\n```python\nif 判断条件:\n    执行语句……\nelse:\n    执行语句……\n```"
+    }
+  ]
+}

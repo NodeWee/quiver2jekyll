@@ -1,0 +1,18 @@
+{
+  "title": "Hello World",
+  "cells": [
+    {
+      "type": "markdown",
+      "data": "这里是 Markdown 单元格。"
+    },
+    {
+      "type": "text",
+      "data": "这里是文本单元格。"
+    },
+    {
+      "type": "code",
+      "language": "python",
+      "data": "# 这里是代码单元格\n# Python 3\nprint(\"Hello World\")"
+    }
+  ]
+}

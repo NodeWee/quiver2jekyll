@@ -1,0 +1,9 @@
+{
+  "title": "JS 事件",
+  "cells": [
+    {
+      "type": "markdown",
+      "data": "{jkfn:js-evnet}\n\n`<element event='一些 JavaScript'>`\n\n实例\n```javascript\n<button onclick='document.getElementById(\"demo\").innerHTML=Date()'>现在的时间是？</button>\n```\n"
+    }
+  ]
+}
