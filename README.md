@@ -1,6 +1,6 @@
 # Quiver2Jekyll
 
-实现一键将 Quiver 笔记（notes） 转为 Jekyll 博文（posts）
+实现将 Quiver 笔记（.qvnote） 转换为 Jekyll 博文（.md）
 
 ## 介绍
 
@@ -31,6 +31,8 @@
 
 命令行：  
 `python quiver2jekyll/app/run.py in_path out_path`
+
+⚠️注意：暂时只支持 Python 3
 
 ### 举例：  
 
