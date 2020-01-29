@@ -66,8 +66,6 @@ def main(args):
     else:
         print("Nothing to export.")
 
-    # print(notebook_name_overwrite_list)
-
 
 if __name__ == "__main__":
     args = parser.parse_args()

@@ -30,7 +30,7 @@
 ## 如何使用
 
 命令行：  
-`python quiver2jekyll/app/run.py in_path out_path`
+`python quiver2jekyll/app/convert.py in_path out_path`
 
 ⚠️注意：暂时只支持 Python 3
 
@@ -45,25 +45,25 @@ cd ~/Desktop/quiver2jekyll
 
 ◉ 查看命令帮助  
 ```
-python app/run.py -h
+python app/convert.py -h
 ```
 
 
 ◉ 转换一个笔记库（.qvlibrary）
 ```
-python app/run.py example/example.qvlibrary example/result/one_library
+python app/convert.py example/example.qvlibrary example/result/one_library
 ```
 
 ◉ 转换一个笔记本（.qvnotebook）
 ```
-python app/run.py example/example.qvlibrary/6412344C-12EB-4281-8E13-B1FCF4CD5F88.qvnotebook example/result/one_notebook
+python app/convert.py example/example.qvlibrary/6412344C-12EB-4281-8E13-B1FCF4CD5F88.qvnotebook example/result/one_notebook
 ```
 
 ◉ 使用 `-t` 参数指定模板  
 
 默认使用的 markdown 模版是 template/post.md。也可以指定一个模板文件，例如
 ```
-python app/run.py example/example.qvlibrary example/result -t path_of_my_markdown.md
+python app/convert.py example/example.qvlibrary example/result -t path_of_my_markdown.md
 ```
 
 自定义模板，支持这些变量：  
@@ -77,7 +77,7 @@ python app/run.py example/example.qvlibrary example/result -t path_of_my_markdow
 
 ◉ 使用 `-n` 参数指定笔记本名称（即博文的分类路径）
 ```
-python app/run.py example/example.qvlibrary example/result -n Javascript=web_coding
+python app/convert.py example/example.qvlibrary example/result -n Javascript=web_coding
 ```
 其中名为“Javascript”的笔记本，在导出后其路径是：`example/result/web_coding`。
 如果不指定笔记本名称，则使用原笔记本名称，即：`example/result/Javascript`
@@ -93,7 +93,7 @@ Quiver 笔记的第一个 cell 选择 markdown 格式，然后按照如下格式
 可参考 example.qvlibrary
 
 ## 授权
-以 **BSD 3-Clause Clear License** 进行授权。详情请参见 [LICENSE.txt](https://github.com/nodewee/quiver2jekyll/LICENSE.txt) 文件。
+以 **BSD 3-Clause Clear License** 进行授权。详情请参见 [LICENSE](https://github.com/nodewee/quiver2jekyll/LICENSE) 文件。
 
 ## 待办 / 你可以参与的贡献 / 协作
 - 兼容 Python 2

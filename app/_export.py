@@ -28,7 +28,7 @@ def validateTitle_fitToURL(title):
     '''
     pattern = r"[^a-zA-Z\d\-_]"
     new_title = re.sub(pattern, "-", title)
-    # 空格替换为下划线（replace space as underscore）
+    # 空格替换为下划线 / Replace space as underscore
     new_title = re.sub(r"\s", "_", new_title)
     #
     new_title = new_title.strip("-_")
