@@ -32,23 +32,30 @@ parser.add_argument(
     metavar="FILE_PATH",
     dest="tpl_path",
     help='jekyll markdown template. Deault: template/post.md '
-    r'Supported variable in template: {title}, {uuid}, {tags}, {content}, {created}, {updated}')
+    r'Supported variable in template: {title}, {uuid}, {tags}, {content}, {created}, {updated}'
+)
 parser.add_argument('-n',
                     nargs=1,
                     metavar="NOTEBOOK_NAMES",
                     dest="notebook_names",
                     help='overwrite notebook name. Example:'
                     ' -n Category1=category1,Category2=collection2')
-
-
 ''' init path '''
 app_path = os.path.dirname(os.path.realpath(__file__))
 
 
 def main(args):
+    # prepare input path, output path
+    input_path = args.input_path if os.path.isabs(
+        args.input_path) else os.path.join(os.getcwd(), args.input_path)
+    output_dir = args.output_dir if os.path.isabs(
+        args.output_dir) else os.path.join(os.getcwd(), args.output_dir)
+
     # load template
     tpl_path = args.tpl_path if args.tpl_path else os.path.join(
         app_path, 'template/post.md')
+    if not os.path.isabs(tpl_path):
+        tpl_path = os.path.join(os.getcwd(), tpl_path)
     post_template = export.load_jekyll_post_template(
         tpl_path)  # default to load template/post.md
 
@@ -59,7 +66,7 @@ def main(args):
             notebook_name_overwrite_list[
                 name_pair[0].strip()] = name_pair[1].strip()
 
-    count = export.convert(args.input_path, args.output_dir, post_template,
+    count = export.convert(input_path, output_dir, post_template,
                            notebook_name_overwrite_list)
     if count:
         print("Export: {} note(s)".format(count))
