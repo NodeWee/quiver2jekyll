@@ -93,7 +93,7 @@ Quiver 笔记的第一个 cell 选择 markdown 格式，然后按照如下格式
 可参考 example.qvlibrary
 
 ## 授权
-以 **BSD 3-Clause Clear License** 进行授权。详情请参见 [LICENSE](https://github.com/nodewee/quiver2jekyll/LICENSE) 文件。
+以 **BSD 3-Clause Clear License** 进行授权。详情请参见 [LICENSE](https://github.com/NodeWee/quiver2jekyll/blob/master/LICENSE) 文件。
 
 ## 待办 / 你可以参与的贡献 / 协作
 - 兼容 Python 2
