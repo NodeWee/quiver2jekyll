@@ -302,7 +302,7 @@ def _convert_qvcell_resourceLinks(cell_data, note_uuid, all_note_uri):
                 new_resLink = "src=\"" + new_resLink + "\""
             elif link_pattern.startswith("href="):
                 new_resLink = "href=\"" + new_resLink + "\""
-            elif link_pattern.startswith("("):
+            elif link_pattern.startswith(r"\("):
                 new_resLink = '(' + new_resLink + ')'
             else:
                 print('WRONG: unkown link_pattern:', link_pattern)
