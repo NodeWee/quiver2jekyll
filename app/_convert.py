@@ -66,10 +66,12 @@ def load_jekyll_post_template(tpl_file_path):
     return data if PY3 else data.decode('utf-8')
 
 
-def convert(in_path, out_path, post_template, notebook_name_overwrite_list):
+def convert(in_path, out_path, resources_dir_path, post_template,
+            notebook_name_overwrite_list):
     allNotesUri, allNotebooksName = _prepareNotes(in_path)
 
     allNotesUri = _prepareMarkdown(allNotesUri, allNotebooksName, out_path,
+                                   resources_dir_path,
                                    notebook_name_overwrite_list)
 
     # convert .qvnote -> .md
@@ -114,7 +116,9 @@ def _prepareNotes(in_path, draft_sign='_'):
         meta = json.loads(
             open(os.path.join(in_path, u'meta.json'), 'r').read())
         note_title = meta['title']
-        if note_title.startswith(draft_sign):  # if title string starts with draft sign(default "-")
+        if note_title.startswith(
+                draft_sign
+        ):  # if title string starts with draft sign(default "-")
             pass  # consider it's a draft, so not convert
         else:
             # base_name is note uuid
@@ -158,7 +162,7 @@ def _prepareNotes(in_path, draft_sign='_'):
 
 
 def _prepareMarkdown(allNotesUri, allNotebooksName, out_path,
-                     notebook_name_overwrite_list):
+                     resources_dir_path, notebook_name_overwrite_list):
     '''
     准备所有的目的路径
     '''
@@ -230,7 +234,7 @@ def _prepareMarkdown(allNotesUri, allNotebooksName, out_path,
         note_created_year = time.strftime(u"%Y",
                                           time.localtime(note_created_at))
         allNotesUri[nt_uuid]['md_resources_dir_path'] = os.path.join(
-            out_path, 'resources', note_created_year)
+            resources_dir_path, note_created_year)
         # - resources dir url
         allNotesUri[nt_uuid]['md_resources_dir_url'] = '/' + \
             '/'.join(['resources', note_created_year])
