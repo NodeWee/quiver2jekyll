@@ -21,7 +21,9 @@
 - 支持**笔记内链的处理**（quiver-note-url）  
 - 支持指定笔记本名称（即博文的分类路径）
 - 支持指定每篇笔记导出的 markdown 文件名（即博文的 url）
-
+- 支持忽略草稿笔记  
+- 自动转换一些 Makrdown 语法，以适应 kramdown  
+	- 单个换行符号后添加两个空格
 
 ## 安装
 下载本 [repo](https://github.com/nodewee/quiver2jekyll/archive/master.zip)，解压缩。
@@ -30,7 +32,7 @@
 ## 如何使用
 
 命令行：  
-`python quiver2jekyll/app/convert.py in_path out_path`
+`python quiver2jekyll/app/main.py in_path out_path`
 
 ⚠️注意：暂时只支持 Python 3
 
@@ -45,25 +47,25 @@ cd ~/Desktop/quiver2jekyll
 
 ◉ 查看命令帮助  
 ```
-python app/convert.py -h
+python app/main.py -h
 ```
 
 
 ◉ 转换一个笔记库（.qvlibrary）
 ```
-python app/convert.py example/example.qvlibrary example/result/one_library
+python app/main.py example/example.qvlibrary example/result/one_library
 ```
 
 ◉ 转换一个笔记本（.qvnotebook）
 ```
-python app/convert.py example/example.qvlibrary/6412344C-12EB-4281-8E13-B1FCF4CD5F88.qvnotebook example/result/one_notebook
+python app/main.py example/example.qvlibrary/6412344C-12EB-4281-8E13-B1FCF4CD5F88.qvnotebook example/result/one_notebook
 ```
 
 ◉ 使用 `-t` 参数指定模板  
 
 默认使用的 markdown 模版是 template/post.md。也可以指定一个模板文件，例如
 ```
-python app/convert.py example/example.qvlibrary example/result -t path_of_my_markdown.md
+python app/main.py example/example.qvlibrary example/result -t path_of_my_markdown.md
 ```
 
 自定义模板，支持这些变量：  
@@ -77,7 +79,7 @@ python app/convert.py example/example.qvlibrary example/result -t path_of_my_mar
 
 ◉ 使用 `-n` 参数指定笔记本名称（即博文的分类路径）
 ```
-python app/convert.py example/example.qvlibrary example/result -n Javascript=web_coding
+python app/main.py example/example.qvlibrary example/result -n Javascript=web_coding
 ```
 其中名为“Javascript”的笔记本，在导出后其路径是：`example/result/web_coding`。
 如果不指定笔记本名称，则使用原笔记本名称，即：`example/result/Javascript`
@@ -92,14 +94,15 @@ Quiver 笔记的第一个 cell 选择 markdown 格式，然后按照如下格式
 
 可参考 example.qvlibrary
 
+
+◉ 忽略草稿笔记  
+笔记的标题前缀下划线“\_”即可。例如：`_note-title`
+
+
 ## 授权
 以 **BSD 3-Clause Clear License** 进行授权。详情请参见 [LICENSE](https://github.com/NodeWee/quiver2jekyll/blob/master/LICENSE) 文件。
 
-## 待办 / 你可以参与的贡献 / 协作
+## TODO / 欢迎一起协作
 - 兼容 Python 2
-- 自动转换一些 makrdown 语法，以适应 kramdown  
-例如：
-  - 自动在换行处补充2个空格
 - 英文版：①代码里的注释添加英文版，②README 的英文版
-- 提交对代码的改进，或发 issue 提出建议
 
