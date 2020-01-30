@@ -96,7 +96,7 @@ def convert(in_path, out_path, post_template, notebook_name_overwrite_list):
     return count
 
 
-def _prepareNotes(in_path):
+def _prepareNotes(in_path, draft_sign='_'):
     '''
     准备所有笔记：文件的源路径
     '''
@@ -110,9 +110,16 @@ def _prepareNotes(in_path):
     [_, inPath_extName] = os.path.splitext(in_path)
 
     if inPath_extName == '.qvnote':
-        nt_uuid, _ = os.path.splitext(os.path.split(in_path)[1])
-        # base_name is note uuid
-        allNotesUri[nt_uuid] = {'note_path': in_path}
+        # check note title,
+        meta = json.loads(
+            open(os.path.join(in_path, u'meta.json'), 'r').read())
+        note_title = meta['title']
+        if note_title.startswith(draft_sign):  # if title string starts with draft sign(default "-")
+            pass  # consider it's a draft, so not convert
+        else:
+            # base_name is note uuid
+            nt_uuid, _ = os.path.splitext(os.path.split(in_path)[1])
+            allNotesUri[nt_uuid] = {'note_path': in_path}
         #
         return allNotesUri, allNotebooksName
 

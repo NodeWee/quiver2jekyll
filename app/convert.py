@@ -20,7 +20,9 @@ import _export as export
 PY3 = sys.version_info >= (3, )
 ''' shell command configuration '''
 parser = argparse.ArgumentParser(
-    description='Convert quiver notes to jekyll posts.')
+    description='=== Convert quiver notes to jekyll posts. === | '
+    'If a quiver note\'s title starts with underline(_),'
+    ' consider it\'s draft, ignore to convert.')
 parser.add_argument(
     'input_path',
     help='Directory path that is .qvlibrary/.qvnotebook/.qvnote.'
