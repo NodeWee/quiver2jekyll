@@ -15,7 +15,7 @@ Enviroment: Python 3
 import os
 import sys
 import argparse
-import _export as export
+import _convert as convert
 
 PY3 = sys.version_info >= (3, )
 ''' shell command configuration '''
@@ -58,7 +58,7 @@ def main(args):
         app_path, 'template/post.md')
     if not os.path.isabs(tpl_path):
         tpl_path = os.path.join(os.getcwd(), tpl_path)
-    post_template = export.load_jekyll_post_template(
+    post_template = convert.load_jekyll_post_template(
         tpl_path)  # default to load template/post.md
 
     notebook_name_overwrite_list = {}
@@ -68,12 +68,12 @@ def main(args):
             notebook_name_overwrite_list[
                 name_pair[0].strip()] = name_pair[1].strip()
 
-    count = export.convert(input_path, output_dir, post_template,
-                           notebook_name_overwrite_list)
+    count = convert.convert(input_path, output_dir, post_template,
+                            notebook_name_overwrite_list)
     if count:
-        print("Export: {} note(s)".format(count))
+        print("Convert: {} note(s)".format(count))
     else:
-        print("Nothing to export.")
+        print("Nothing to convert.")
 
 
 if __name__ == "__main__":
