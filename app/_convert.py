@@ -262,25 +262,31 @@ def _convert_qvjson_to_jkmd(meta, content, post_template, all_note_uri):
             content[u'cells'][0]['data'] = re.sub(r'\{jkfn:(.*?)\}', '',
                                                   content[u'cells'][0]['data'])
     #
-    tmpdata = u''
+    new_content = u''
     for cell in content[u'cells']:
         if cell['type'] in ['text', 'markdown']:
-            cell_data = cell['data']
-            cell_data = _convert_qvcell_resourceLinks(cell_data, note_uuid,
-                                                      all_note_uri)
-            cell_data = _convert_qvcell_noteLinks(cell_data, all_note_uri)
+            tmpdata = cell['data']
+            tmpdata = _convert_qvcell_resourceLinks(tmpdata, note_uuid,
+                                                    all_note_uri)
+            tmpdata = _convert_qvcell_noteLinks(tmpdata, all_note_uri)
+            # markdown format
+            if cell['type'] == 'markdown':
+                # 单个换行符号后添加两个空格
+                r = re.findall(r'([^\n]\n[^\n])', tmpdata)
+                for s in r:
+                    tmpdata = tmpdata.replace(s, s.replace('\n', '  \n'))
             #
-            tmpdata += u'\n' + cell_data + u'\n'
+            new_content += u'\n' + tmpdata + u'\n'
         elif cell['type'] == 'code':
-            tmpdata += u'\n~~~ ' + cell['language'] + \
+            new_content += u'\n~~~ ' + cell['language'] + \
                 u'\n' + cell['data'] + u'\n~~~\n'
         elif cell['type'] == 'latex':
-            tmpdata += u'\n$$\n' + cell['data'] + '\n$$\n'
+            new_content += u'\n$$\n' + cell['data'] + '\n$$\n'
         else:
-            tmpdata += u'\n' + cell['data'] + u'\n'
+            new_content += u'\n' + cell['data'] + u'\n'
 
     jekyllmd = post_template.format(title=title,
-                                    content=tmpdata,
+                                    content=new_content,
                                     uuid=note_uuid,
                                     tags=tags,
                                     created=created,
