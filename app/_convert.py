@@ -266,9 +266,11 @@ def _convert_qvjson_to_jkmd(meta, content, post_template, all_note_uri):
     for cell in content[u'cells']:
         if cell['type'] in ['text', 'markdown']:
             tmpdata = cell['data']
+            # convert links
             tmpdata = _convert_qvcell_resourceLinks(tmpdata, note_uuid,
                                                     all_note_uri)
             tmpdata = _convert_qvcell_noteLinks(tmpdata, all_note_uri)
+            tmpdata = _filter_x_callback_url(tmpdata)
             # markdown format
             if cell['type'] == 'markdown':
                 # 单个换行符号后添加两个空格
@@ -366,4 +368,17 @@ def _convert_qvcell_noteLinks(cell_data, all_note_uri):
                                 r'\(quiver-note-url/.*?\)',
                                 r'\(quiver-note-url/(.*?)\)')
 
+    return cell_data
+
+
+def _filter_x_callback_url(cell_data):
+    link_pattern = r'\[(.*?)\]\(x\-.*?:\/\/.*?\)'
+    while True:
+        r = re.search(link_pattern, cell_data)
+        if not r:
+            break
+        #
+        cell_data = cell_data[:r.span()[0]] + r.groups()[0] + cell_data[r.span(
+        )[1]:]
+    #
     return cell_data
