@@ -18,9 +18,9 @@
 - 输入的文件可以是：笔记（.qvnote）、笔记本（.qvnotebook）或笔记库（.qvlibrary）  
 - 支持自定义 markdown 模版
 - 支持内链处理：
-	- 图片内链（quiver-image-url）自动转换  
+	- 图片和文件内链（quiver-image-url，quiver-file-url）自动转换  
 	- **笔记内链**（quiver-note-url）自动转换  
-	- App URL Scheme (x-callback-url)自动删除  
+	- App URL Scheme（x-callback-url）自动删除  
 - 支持指定笔记本名称（即博文的分类路径）
 - 支持指定每篇笔记导出的 markdown 文件名（即博文的 url）
 - 支持忽略草稿笔记  
