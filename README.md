@@ -90,7 +90,7 @@ python app/main.py example/example.qvlibrary example/result -n Javascript=web_co
 
 Quiver 笔记的第一个 cell 选择 markdown 格式，然后按照如下格式指定笔记的 .md 文件名
 ```
-{jkfn:this-post-s-jekyll-file-name}
+{mdfn:this-post-s-jekyll-file-name}
 ```
 该条笔记导出后的文件名是：`2020-01-17-this-post-s-jekyll-file-name.md`
 
