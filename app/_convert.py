@@ -63,7 +63,6 @@ def makeDirs(dirpath):
             os.makedirs(dirpath)
 
 
-
 def load_jekyll_post_template(tpl_file_path):
     '''
     载入 jekyll post(.md) 的模板。
@@ -124,15 +123,13 @@ def _prepareNotes(in_path, draft_sign='_'):
         meta = json.loads(
             open(os.path.join(in_path, u'meta.json'), 'r').read())
         note_title = meta['title']
-        if note_title.startswith(
-                draft_sign
-        ):  # if title string starts with draft sign(default "-")
-            pass  # consider it's a draft, so not convert
-        else:
-            # base_name is note uuid
-            nt_uuid, _ = os.path.splitext(os.path.split(in_path)[1])
-            allNotesUri[nt_uuid] = {'note_path': in_path}
-        #
+        # if title string starts with draft sign(default "_")
+        if note_title.startswith(draft_sign):
+            return allNotesUri, allNotebooksName  # consider it's a draft, so not convert
+
+        # base_name is note uuid
+        nt_uuid, _ = os.path.splitext(os.path.split(in_path)[1])
+        allNotesUri[nt_uuid] = {'note_path': in_path}
         return allNotesUri, allNotebooksName
 
     if inPath_extName == '.qvnotebook':
@@ -142,9 +139,14 @@ def _prepareNotes(in_path, draft_sign='_'):
         if ntbk_uuid.lower() == u"trash":
             return allNotesUri, allNotebooksName
 
-        # notebook uuid mapping name
         ntbk_meta = json.loads(
             open(os.path.join(in_path, u'meta.json'), 'r').read())
+
+        # if notebook name starts with draft sign(default "_")
+        if ntbk_meta['name'].startswith(draft_sign):
+            return allNotesUri, allNotebooksName  # consider it's a draft, so not convert
+
+        # notebook uuid mapping name
         allNotebooksName[ntbk_uuid] = ntbk_meta['name']
 
         # notes in notebook
