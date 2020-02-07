@@ -22,38 +22,46 @@ import shutil
 PY3 = sys.version_info >= (3, )
 
 
-def validateTitle_fitToURL(title):
-    '''
-    去除文件名字符串中的非法字符
-    '''
-    pattern = r"[^a-zA-Z\d\-_]"
-    new_title = re.sub(pattern, "-", title)
-    # 空格替换为下划线 / Replace space as underscore
-    new_title = re.sub(r"\s", "_", new_title)
+def hyphenCase(s):
+    return '-'.join(
+        re.sub('([A-Z][a-z]+)', r' \1',
+               re.sub('([A-Z]+)', r' \1', s.replace('-',
+                                                    ' '))).split()).lower()
+
+
+def rinseStringToEnglishUrl(s):  # 过滤字符串以符合英文 url 格式
+    ns = re.sub(r'[^a-zA-Z\d\-]', ' ', s)
+    ns = hyphenCase(ns)
     #
-    new_title = new_title.strip("-_")
-    if not new_title:
-        new_title = 'untitled'
-    return new_title
+    return ns if ns else 'untitled'
 
 
-def makeDirs(dirname):
+def existStringAddSerial(newStr, strList, separator='', _curI=1):
+    '''
+    please ignore _curI parameter
+    '''
+    if _curI < 2:
+        if newStr not in strList:
+            return newStr
+
+    if newStr + separator + str(_curI) not in strList:
+        return newStr + separator + str(_curI)
+
+    return existStringAddSerial(newStr, strList, separator, _curI + 1)
+
+
+def makeDirs(dirpath):
     '''
     创建目录，支持多级目录的创建，若目录已存在自动忽略
     '''
 
-    # 去除首尾空格
-    dirname = dirname.strip()
-    # 去除尾部 \ 或 / 符号
-    dirname = dirname.rstrip("\\")
-    dirname = dirname.rstrip("/")
+    # 去除首尾空格和右侧的路径分隔符
+    dirpath = dirpath.strip().rstrip(os.path.sep)
 
-    if not dirname:
-        return
+    if dirpath:
+        if not os.path.exists(dirpath):  # 如果目录已存在, 则pass，否则才创建
+            os.makedirs(dirpath)
 
-    # 如果目录已存在, 则pass，否则才创建
-    if not os.path.exists(dirname):
-        os.makedirs(dirname)
 
 
 def load_jekyll_post_template(tpl_file_path):
@@ -166,6 +174,7 @@ def _prepareMarkdown(allNotesUri, allNotebooksName, out_path,
     '''
     准备所有的目的路径
     '''
+    existMarkdownFileTitle = []
     for nt_uuid in allNotesUri:
         nt_path = allNotesUri[nt_uuid]['note_path']
 
@@ -207,14 +216,18 @@ def _prepareMarkdown(allNotesUri, allNotebooksName, out_path,
             if content[u'cells'][0]['type'] == 'markdown':
                 first_cell_data = content[u'cells'][0]['data']
                 # first_cell_data = re.sub(r'<.*?>',"",first_cell_data) #find in html
-                match = re.search(r'\{jkfn:(.*?)\}', first_cell_data)
+                match = re.search(r'\{mdfn:(.*?)\}', first_cell_data)
                 if match:
                     user_custom_md_filename = match.groups()[0].strip()
-                    md_filename_title = validateTitle_fitToURL(
+                    md_filename_title = rinseStringToEnglishUrl(
                         user_custom_md_filename)
         if md_filename_title == '':  # - else, use note title as md file name
-            md_filename_title = validateTitle_fitToURL(
+            md_filename_title = rinseStringToEnglishUrl(
                 meta.get("title")).lower()
+        #
+        md_filename_title = existStringAddSerial(md_filename_title,
+                                                 existMarkdownFileTitle, '-')
+        existMarkdownFileTitle.append(md_filename_title)
 
         if ntbk_name:
             if ntbk_name in notebook_name_overwrite_list:  # overwrite ntbk_name
@@ -231,7 +244,7 @@ def _prepareMarkdown(allNotesUri, allNotebooksName, out_path,
             '/'.join([ntbk_name, md_filename_title])
 
         # - resources dir path
-        note_created_year = time.strftime(u"%Y",
+        note_created_year = time.strftime(u"%Y" + os.path.sep + u"%m",
                                           time.localtime(note_created_at))
         allNotesUri[nt_uuid]['md_resources_dir_path'] = os.path.join(
             resources_dir_path, note_created_year)
@@ -259,7 +272,7 @@ def _convert_qvjson_to_jkmd(meta, content, post_template, all_note_uri):
     # clear custom jekyll file name block in first cell block
     if content.get(u'cells'):
         if content[u'cells'][0]['type'] == 'markdown':
-            content[u'cells'][0]['data'] = re.sub(r'\{jkfn:(.*?)\}', '',
+            content[u'cells'][0]['data'] = re.sub(r'\{mdfn:(.*?)\}', '',
                                                   content[u'cells'][0]['data'])
     #
     new_content = u''
