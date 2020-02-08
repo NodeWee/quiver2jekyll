@@ -288,10 +288,15 @@ def _convert_qvjson_to_jkmd(meta, content, post_template, all_note_uri):
             tmpdata = _filter_x_callback_url(tmpdata)
             # markdown format
             if cell['type'] == 'markdown':
+                # ul li 有空行后，格式不兼容处理
+                tmpdata = re.sub(r'(\n)(\n\* )', r'\1&nbsp;\2', tmpdata)
+                tmpdata = re.sub(r'(\n)(\n\- )', r'\1&nbsp;\2', tmpdata)
+
                 # 单个换行符号后添加两个空格
                 r = re.findall(r'([^\n]\n[^\n])', tmpdata)
                 for s in r:
                     tmpdata = tmpdata.replace(s, s.replace('\n', '  \n'))
+
             #
             new_content += u'\n' + tmpdata + u'\n'
         elif cell['type'] == 'code':
