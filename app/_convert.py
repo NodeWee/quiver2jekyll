@@ -242,8 +242,13 @@ def _prepareMarkdown(allNotesUri, allNotebooksName, out_path,
             out_path, md_dir_relpath,
             md_filename_date + '-' + md_filename_title + '.md')
         # - post url
+        url_subdirname = ''
+        if ntbk_name == '_posts':
+            pass  # url_subdirname = ''
+        else:  # is collection dir
+            url_subdirname = ntbk_name.lstrip('_')
         allNotesUri[nt_uuid]['post_url'] = '/' + \
-            '/'.join([ntbk_name, md_filename_title])
+            '/'.join([url_subdirname, md_filename_title])
 
         # - resources dir path
         note_created_year = time.strftime(u"%Y" + os.path.sep + u"%m",
