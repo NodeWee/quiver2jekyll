@@ -301,7 +301,6 @@ def _convert_qvjson_to_jkmd(meta, content, post_template, all_note_uri):
                 r = re.findall(r'([^\n]\n[^\n])', tmpdata)
                 for s in r:
                     tmpdata = tmpdata.replace(s, s.replace('\n', '  \n'))
-
             #
             new_content += u'\n' + tmpdata + u'\n'
         elif cell['type'] == 'code':
@@ -383,8 +382,11 @@ def _convert_qvcell_noteLinks(cell_data, all_note_uri):
         noteLinks = list(set(noteLinks))
         for link in noteLinks:
             noteUUID = re.findall(linkNoteUUID_pattern, link)[0]
-            new_link = "(" + all_note_uri[noteUUID]['post_url'] + ")"
-            # replace link
+            if noteUUID in all_note_uri.keys():
+                new_link = "(" + all_note_uri[noteUUID]['post_url'] + ")"
+            else:
+                new_link = '()'
+                # replace link
             cell_data = cell_data.replace(link, new_link)
         return cell_data
 
