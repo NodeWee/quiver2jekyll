@@ -1,6 +1,6 @@
 # Quiver2Jekyll
 
-实现将 Quiver 笔记（.qvnote） 转换为 Jekyll 博文（.md）
+将 Quiver 笔记（.qvnote） 转换为 Jekyll 文章（.md）
 
 ## 介绍
 
@@ -25,7 +25,7 @@
 - 支持指定每篇笔记导出的 markdown 文件名（即博文的 url）
 - 支持忽略草稿笔记  
 - 自动转换一些 Makrdown 语法，以适应 kramdown  
-	- 单个换行符号后添加两个空格
+
 
 ## 安装
 下载本 [repo](https://github.com/nodewee/quiver2jekyll/archive/master.zip)，解压缩。
@@ -97,8 +97,9 @@ Quiver 笔记的第一个 cell 选择 markdown 格式，然后按照如下格式
 可参考 example.qvlibrary
 
 
-◉ 忽略草稿笔记  
-笔记的标题前缀下划线“\_”即可。例如：`_note-title`
+◉ 忽略草稿  
+忽略草稿笔记：笔记的标题前缀下划线“\_”即可。例如：`_note-title`
+忽略草稿笔记本，笔记本的标题前缀下划线“\_”即可。
 
 
 ## 授权
@@ -106,5 +107,4 @@ Quiver 笔记的第一个 cell 选择 markdown 格式，然后按照如下格式
 
 ## TODO / 欢迎一起协作
 - 兼容 Python 2
-- 英文版：①代码里的注释添加英文版，②README 的英文版
 
