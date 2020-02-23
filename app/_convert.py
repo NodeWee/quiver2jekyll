@@ -83,6 +83,8 @@ def convert(in_path, out_path, resources_dir_path, post_template,
 
     # convert .qvnote -> .md
     count = 0
+    notes_which_linked_but_no_converting = []
+
     for nt_uuid in allNotesUri:
         qvnote_path = allNotesUri[nt_uuid]['note_path']
         markdown_filepath = allNotesUri[nt_uuid]['md_filepath']
@@ -94,13 +96,20 @@ def convert(in_path, out_path, resources_dir_path, post_template,
         content = json.loads(
             open(os.path.join(qvnote_path, u'content.json'), 'r').read())
 
-        md_data = _convert_qvjson_to_jkmd(meta, content, post_template,
-                                          allNotesUri)
+        md_data = _convert_qvjson_to_jkmd(
+            meta, content, post_template, allNotesUri,
+            notes_which_linked_but_no_converting)
         # -save md data to file
         makeDirs(os.path.dirname(markdown_filepath))
         with open(os.path.join(markdown_filepath), 'wb') as f:
             f.write(md_data.encode('utf-8'))
             count += 1
+    # end for
+
+    if len(notes_which_linked_but_no_converting) > 0:
+        print('linked notes but not in converting list:')
+        for s in notes_which_linked_but_no_converting:
+            print('\t' + s)
 
     return count
 
@@ -262,7 +271,8 @@ def _prepareMarkdown(allNotesUri, allNotebooksName, out_path,
     return allNotesUri
 
 
-def _convert_qvjson_to_jkmd(meta, content, post_template, all_note_uri):
+def _convert_qvjson_to_jkmd(meta, content, post_template, all_note_uri,
+                            notes_which_linked_but_no_converting):
     """ quiver json content to jekyll markdown content """
 
     note_uuid = meta.get(u'uuid')
@@ -289,18 +299,13 @@ def _convert_qvjson_to_jkmd(meta, content, post_template, all_note_uri):
             # convert links
             tmpdata = _convert_qvcell_resourceLinks(tmpdata, note_uuid,
                                                     all_note_uri)
-            tmpdata = _convert_qvcell_noteLinks(tmpdata, all_note_uri)
+            tmpdata = _convert_qvcell_noteLinks(
+                tmpdata, all_note_uri, notes_which_linked_but_no_converting)
+
             tmpdata = _filter_x_callback_url(tmpdata)
             # markdown format
             if cell['type'] == 'markdown':
-                # ul li 有空行后，格式不兼容处理
-                tmpdata = re.sub(r'(\n)(\n\* )', r'\1&nbsp;\2', tmpdata)
-                tmpdata = re.sub(r'(\n)(\n\- )', r'\1&nbsp;\2', tmpdata)
-
-                # 单个换行符号后添加两个空格
-                r = re.findall(r'([^\n]\n[^\n])', tmpdata)
-                for s in r:
-                    tmpdata = tmpdata.replace(s, s.replace('\n', '  \n'))
+                tmpdata = _convert_qvcell_markdown_format(tmpdata)
             #
             new_content += u'\n' + tmpdata + u'\n'
         elif cell['type'] == 'code':
@@ -310,6 +315,7 @@ def _convert_qvjson_to_jkmd(meta, content, post_template, all_note_uri):
             new_content += u'\n$$\n' + cell['data'] + '\n$$\n'
         else:
             new_content += u'\n' + cell['data'] + u'\n'
+    # end for
 
     jekyllmd = post_template.format(title=title,
                                     content=new_content,
@@ -318,6 +324,78 @@ def _convert_qvjson_to_jkmd(meta, content, post_template, all_note_uri):
                                     created=created,
                                     updated=updated)
     return jekyllmd
+
+
+def _convert_qvcell_markdown_format(cell_data):
+    '''
+        方法有点笨，管用先行
+    '''
+    lines = cell_data.splitlines()
+    line_in_mode = 'normal'
+    line_last_mode = 'normal'
+    last_is_blank = False
+
+    new_lines = []
+    for line in lines:
+        line_in_mode = 'normal'
+        trimline = line.strip()
+
+        if trimline.startswith('```'):
+            if line_last_mode != 'precode':
+                line_in_mode = 'precode'
+        elif trimline.startswith('>'):
+            if line_last_mode != 'precode':
+                line_in_mode = 'blockquote'
+        elif trimline.startswith(('- ', '* ')):
+            if line_last_mode != 'precode':
+                line_in_mode = 'ul'
+        elif trimline.startswith('|'):
+            if line_last_mode != 'precode':
+                line_in_mode = 'table'
+        elif trimline == '':
+            if line_last_mode == 'ul':
+                line_in_mode = 'ul'
+            elif line_in_mode == 'precode':
+                line_in_mode = 'precode'
+        else:
+            if line_in_mode == 'precode':
+                line_in_mode = 'precode'
+            elif line_last_mode == 'ul':
+                if not last_is_blank:
+                    line_in_mode = 'ul'
+
+        # new line
+        if trimline == '':
+            if line_in_mode == 'ul':
+                new_line = '&nbsp;'
+            elif line_last_mode == 'blockquote':
+                new_line = ''
+            else:
+                new_line = '\n&nbsp;'
+        else:
+            if line_in_mode == 'normal' and line_last_mode == 'ul' and last_is_blank:
+                new_line = '\n' + line
+            elif line_in_mode == 'table' and line_last_mode != 'table':
+                new_line = '\n' + line
+            else:
+                new_line = line
+        #
+        new_lines.append(new_line)
+
+        #
+        line_last_mode = line_in_mode
+        if trimline == '':
+            last_is_blank = True
+        else:
+            last_is_blank = False
+
+    # end for lines
+
+    #
+    new_cell = '\n'.join(new_lines)
+
+    # return
+    return new_cell
 
 
 def _convert_qvcell_resourceLinks(cell_data, note_uuid, all_note_uri):
@@ -375,7 +453,10 @@ def _convert_qvcell_resourceLinks(cell_data, note_uuid, all_note_uri):
 #
 
 
-def _convert_qvcell_noteLinks(cell_data, all_note_uri):
+def _convert_qvcell_noteLinks(cell_data, all_note_uri,
+                              notes_which_linked_but_no_converting):
+    notes_which_linked_but_no_converting = notes_which_linked_but_no_converting
+
     def _one_type_links(cell_data, all_note_uri, link_pattern,
                         linkNoteUUID_pattern):
         noteLinks = re.findall(link_pattern, cell_data)
@@ -386,14 +467,20 @@ def _convert_qvcell_noteLinks(cell_data, all_note_uri):
                 new_link = "(" + all_note_uri[noteUUID]['post_url'] + ")"
             else:
                 new_link = '()'
-                # replace link
+                if noteUUID not in notes_which_linked_but_no_converting:
+                    notes_which_linked_but_no_converting.append(noteUUID)
+            # replace link
             cell_data = cell_data.replace(link, new_link)
         return cell_data
 
     #
-    cell_data = _one_type_links(cell_data, all_note_uri,
-                                r'\(quiver-note-url/.*?\)',
-                                r'\(quiver-note-url/(.*?)\)')
+    cell_data = _one_type_links(
+        cell_data,
+        all_note_uri,
+        r'\(quiver-note-url/.*?\)',
+        # supported url example: (quiver-note-url/87AB5ED5-C1A5-45F5-95A3-667C9B2CD0B6#parameter)
+        r'\(quiver-note-url/([A-Z0-9\-]+).*\)',
+    )
 
     return cell_data
 
