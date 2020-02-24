@@ -355,10 +355,10 @@ def _convert_qvcell_markdown_format(cell_data):
         elif trimline == '':
             if line_last_mode == 'ul':
                 line_in_mode = 'ul'
-            elif line_in_mode == 'precode':
+            elif line_last_mode == 'precode':
                 line_in_mode = 'precode'
         else:
-            if line_in_mode == 'precode':
+            if line_last_mode == 'precode':
                 line_in_mode = 'precode'
             elif line_last_mode == 'ul':
                 if not last_is_blank:
@@ -366,14 +366,18 @@ def _convert_qvcell_markdown_format(cell_data):
 
         # new line
         if trimline == '':
-            if line_in_mode == 'ul':
+            if line_in_mode == 'precode':
+                new_line = line
+            elif line_in_mode == 'ul':
                 new_line = '&nbsp;'
             elif line_last_mode == 'blockquote':
                 new_line = ''
             else:
                 new_line = '\n&nbsp;'
         else:
-            if line_in_mode == 'normal' and line_last_mode == 'ul' and last_is_blank:
+            if line_in_mode == 'precode':
+                new_line = line
+            elif line_in_mode == 'normal' and line_last_mode == 'ul' and last_is_blank:
                 new_line = '\n' + line
             elif line_in_mode == 'table' and line_last_mode != 'table':
                 new_line = '\n' + line
