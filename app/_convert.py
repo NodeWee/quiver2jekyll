@@ -340,7 +340,7 @@ def _convert_qvcell_markdown_format(cell_data):
         line_in_mode = 'normal'
         trimline = line.strip()
 
-        if trimline.startswith('```'):
+        if trimline in ['```','~~~']:
             if line_last_mode != 'precode':
                 line_in_mode = 'precode'
         elif trimline.startswith('>'):
@@ -349,6 +349,11 @@ def _convert_qvcell_markdown_format(cell_data):
         elif trimline.startswith(('- ', '* ')):
             if line_last_mode != 'precode':
                 line_in_mode = 'ul'
+        elif trimline.startswith(('-','*')):
+            if line_last_mode != 'precode':
+                print(trimline)
+                if len(trimline) > 2 and trimline == trimline[0] * len(trimline):
+                    line_in_mode = 'hr'
         elif trimline.startswith('|'):
             if line_last_mode != 'precode':
                 line_in_mode = 'table'
@@ -372,6 +377,8 @@ def _convert_qvcell_markdown_format(cell_data):
                 new_line = '&nbsp;'
             elif line_last_mode == 'blockquote':
                 new_line = ''
+            elif last_is_blank and line_last_mode == 'normal':
+                new_line = ''
             else:
                 new_line = '\n&nbsp;'
         else:
@@ -381,6 +388,8 @@ def _convert_qvcell_markdown_format(cell_data):
                 new_line = '\n' + line
             elif line_in_mode == 'table' and line_last_mode != 'table':
                 new_line = '\n' + line
+            elif line_in_mode == 'hr':
+                new_line = '<hr />'
             else:
                 new_line = line
         #
