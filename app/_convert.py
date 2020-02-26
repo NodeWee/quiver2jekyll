@@ -89,15 +89,11 @@ def convert(in_path, out_path, resources_dir_path, post_template,
         qvnote_path = allNotesUri[nt_uuid]['note_path']
         markdown_filepath = allNotesUri[nt_uuid]['md_filepath']
 
-        # - convert data
-        # read note meta & content from .json file
-        meta = json.loads(
-            open(os.path.join(qvnote_path, u'meta.json'), 'r').read())
         content = json.loads(
             open(os.path.join(qvnote_path, u'content.json'), 'r').read())
 
         md_data = _convert_qvjson_to_jkmd(
-            meta, content, post_template, allNotesUri,
+            allNotesUri[nt_uuid]['meta'], content, post_template, allNotesUri,
             notes_which_linked_but_no_converting)
         # -save md data to file
         makeDirs(os.path.dirname(markdown_filepath))
@@ -207,18 +203,12 @@ def _prepareMarkdown(allNotesUri, allNotebooksName, out_path,
                 #
                 ntbk_name = allNotebooksName[ntbk_uuid]
 
-        # qvnote meta data
+        # read qvnote's meta data form meta.json
         meta = json.loads(
             open(os.path.join(nt_path, u'meta.json'), u'rt',
                  encoding=u'utf-8').read())
-        note_created_at = meta.get(u'created_at')
 
-        # md file name - date
-        md_filename_date = time.strftime(u"%Y-%m-%d",
-                                         time.localtime(note_created_at))
-        # md file name - title
-        md_filename_title = ''
-        # - if user custom file name in the first line of content
+        # read Q2J post config from first cell which type is markdown
         content = json.loads(
             open(os.path.join(nt_path, u'content.json'),
                  u'rt',
@@ -226,19 +216,32 @@ def _prepareMarkdown(allNotesUri, allNotebooksName, out_path,
         if len(content[u'cells']) > 0:
             if content[u'cells'][0]['type'] == 'markdown':
                 first_cell_data = content[u'cells'][0]['data']
-                # first_cell_data = re.sub(r'<.*?>',"",first_cell_data) #find in html
-                match = re.search(r'\{mdfn:(.*?)\}', first_cell_data)
-                if match:
-                    user_custom_md_filename = match.groups()[0].strip()
-                    md_filename_title = rinseStringToEnglishUrl(
-                        user_custom_md_filename)
-        if md_filename_title == '':  # - else, use note title as md file name
+                # user custome md filename
+                matched = re.search(r'\{mdfn:(.*?)\}', first_cell_data)
+                if matched:
+                    meta['user_custom_md_filename'] = matched.groups(
+                    )[0].strip()
+                    meta['user_custom_md_filename'] = rinseStringToEnglishUrl(
+                        meta['user_custom_md_filename'])
+                # user custome post description
+                matched = re.search(r'\{desc:(.*?)\}', first_cell_data)
+                if matched:
+                    meta['user_custom_post_description'] = matched.groups(
+                    )[0].strip()
+
+        # - post created date
+        note_created_at = meta.get(u'created_at')
+        # - md filename (date part & title part)
+        md_filename_date = time.strftime(u"%Y-%m-%d",
+                                         time.localtime(note_created_at))
+        md_filename_title = meta.get('user_custom_md_filename')
+        if not md_filename_title:
             md_filename_title = rinseStringToEnglishUrl(
                 meta.get("title")).lower()
-        #
         md_filename_title = existStringAddSerial(md_filename_title,
                                                  existMarkdownFileTitle, '-')
-        existMarkdownFileTitle.append(md_filename_title)
+        existMarkdownFileTitle.append(
+            md_filename_title)  # cache exist md file title
 
         if ntbk_name:
             if ntbk_name in notebook_name_overwrite_list:  # overwrite ntbk_name
@@ -268,6 +271,8 @@ def _prepareMarkdown(allNotesUri, allNotebooksName, out_path,
         allNotesUri[nt_uuid]['md_resources_dir_url'] = '/' + \
             '/'.join(['resources', note_created_year])
 
+        #
+        allNotesUri[nt_uuid]['meta'] = meta
     return allNotesUri
 
 
@@ -281,16 +286,21 @@ def _convert_qvjson_to_jkmd(meta, content, post_template, all_note_uri,
                             time.localtime(content.get(u'created_at')))
     updated = time.strftime(u"%Y-%m-%d",
                             time.localtime(content.get(u'created_at')))
-    tags = ""
+    tags = ''
     for tag in meta.get(u'tags'):
         tags += "\n - " + tag
-    # md_resources_dir_path = all_note_uri[note_uuid]['md_resources_dir_path']
+    description = meta.get('user_custom_post_description')
+    if not description:
+        description = ''
 
-    # clear custom jekyll file name block in first cell block
+    # clear user custom Q2J post config (in first cell which type is markdown
     if content.get(u'cells'):
         if content[u'cells'][0]['type'] == 'markdown':
-            content[u'cells'][0]['data'] = re.sub(r'\{mdfn:(.*?)\}', '',
-                                                  content[u'cells'][0]['data'])
+            tmpd = content[u'cells'][0]['data']
+            tmpd = re.sub(r'\{mdfn:(.*?)\}', '', tmpd)
+            tmpd = re.sub(r'\{desc:(.*?)\}', '', tmpd)
+            content[u'cells'][0]['data'] = tmpd
+
     #
     new_content = u''
     for cell in content[u'cells']:
@@ -322,7 +332,8 @@ def _convert_qvjson_to_jkmd(meta, content, post_template, all_note_uri,
                                     uuid=note_uuid,
                                     tags=tags,
                                     created=created,
-                                    updated=updated)
+                                    updated=updated,
+                                    description=description)
     return jekyllmd
 
 
@@ -340,7 +351,7 @@ def _convert_qvcell_markdown_format(cell_data):
         line_in_mode = 'normal'
         trimline = line.strip()
 
-        if trimline in ['```','~~~']:
+        if trimline in ['```', '~~~']:
             if line_last_mode != 'precode':
                 line_in_mode = 'precode'
         elif trimline.startswith('>'):
@@ -349,10 +360,10 @@ def _convert_qvcell_markdown_format(cell_data):
         elif trimline.startswith(('- ', '* ')):
             if line_last_mode != 'precode':
                 line_in_mode = 'ul'
-        elif trimline.startswith(('-','*')):
+        elif trimline.startswith(('-', '*')):
             if line_last_mode != 'precode':
-                print(trimline)
-                if len(trimline) > 2 and trimline == trimline[0] * len(trimline):
+                if len(trimline
+                       ) > 2 and trimline == trimline[0] * len(trimline):
                     line_in_mode = 'hr'
         elif trimline.startswith('|'):
             if line_last_mode != 'precode':
