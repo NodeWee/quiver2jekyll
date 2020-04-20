@@ -38,7 +38,7 @@ parser.add_argument(
     metavar="FILE_PATH",
     dest="tpl_path",
     help='jekyll markdown template. Default: template/post.md '
-    r'Supported variable in template: {title}, {uuid}, {tags}, {content}, {created}, {updated}'
+    r'Supported variable in template: {title}, {uuid}, {tags}, {content}, {created}, {updated}, {description}'
 )
 parser.add_argument(
     '-r',
