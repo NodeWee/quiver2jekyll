@@ -317,11 +317,16 @@ def _convert_qvcell_markdown_format(cell_data):
         elif trimline.startswith(('- ', '* ')):
             if line_last_mode != 'precode_in':
                 line_in_mode = 'ul'
-        elif trimline.startswith(('-', '*')):
+        elif trimline.startswith(('-', '*', '_')):
             if line_last_mode != 'precode_in':
                 if len(trimline
                        ) > 2 and trimline == trimline[0] * len(trimline):
                     line_in_mode = 'hr'
+                else:
+                    if last_is_blank:
+                        line_in_mode = 'normal'
+                    else:
+                        line_in_mode = line_last_mode
         elif trimline.startswith('|'):
             if line_last_mode != 'precode_in':
                 line_in_mode = 'table'
