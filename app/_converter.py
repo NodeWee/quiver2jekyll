@@ -237,11 +237,12 @@ def _convert_qvjson_to_jkmd(note_uuid, notes2post_data, content, post_template,
     convert quiver json content to jekyll markdown content
     '''
     meta = notes2post_data[note_uuid]['meta']
-    title = content.get(u'title')
+    title = meta.get(u'title')
     created = time.strftime(u"%Y-%m-%d",
-                            time.localtime(content.get(u'created_at')))
+                            time.localtime(meta.get(u'created_at')))
     updated = time.strftime(u"%Y-%m-%d",
-                            time.localtime(content.get(u'created_at')))
+                            time.localtime(meta.get(u'updated_at')))
+    print(updated)
     tags = ''
     for tag in meta.get(u'tags'):
         tags += "\n - " + tag
