@@ -170,19 +170,28 @@ def _prepareMarkdown(note2PostData, notebookNames, out_path,
                  encoding=u'utf-8').read())
         if len(content[u'cells']) > 0:
             if content[u'cells'][0]['type'] == 'markdown':
+
                 first_cell_data = content[u'cells'][0]['data']
-                # user custome md filename
+                # 每篇文章的可配置项
+
+                # option : user custome md filename
                 matched = re.search(r'\{mdfn:(.*?)\}', first_cell_data)
                 if matched:
                     meta['user_custom_md_filename'] = matched.groups(
                     )[0].strip()
                     meta['user_custom_md_filename'] = rinseStringToEnglishUrl(
                         meta['user_custom_md_filename'])
-                # user custome post description
+                # option : user custome post description
                 matched = re.search(r'\{desc:(.*?)\}', first_cell_data)
                 if matched:
                     meta['user_custom_post_description'] = matched.groups(
                     )[0].strip()
+                # option | comments switch (for discus)
+                matched = re.search(r'\{comments:(.*?)\}', first_cell_data)
+                if matched:
+                    meta['user_custom_comments_switch'] = matched.groups(
+                    )[0].strip()
+
         #
         note2PostData[nt_uuid]['meta'] = meta
 
@@ -240,9 +249,9 @@ def _convert_qvjson_to_jkmd(note_uuid, notes2post_data, content, post_template,
     title = meta.get(u'title')
     created = time.strftime(u"%Y-%m-%d",
                             time.localtime(meta.get(u'created_at')))
-    updated = time.strftime(u"%Y-%m-%d",
+    updated = time.strftime(u"%Y/%m/%d",
                             time.localtime(meta.get(u'updated_at')))
-    print(updated)
+    # print(updated)
     tags = ''
     for tag in meta.get(u'tags'):
         tags += "\n - " + tag
@@ -250,12 +259,17 @@ def _convert_qvjson_to_jkmd(note_uuid, notes2post_data, content, post_template,
     if not description:
         description = ''
 
+    comments_switch = meta.get('user_custom_comments_switch')
+    if comments_switch is None:
+        comments_switch = 'true'
+
     # clear user custom Q2J post config (in first cell which type is markdown
     if content.get(u'cells'):
         if content[u'cells'][0]['type'] == 'markdown':
             tmpd = content[u'cells'][0]['data']
             tmpd = re.sub(r'\{mdfn:(.*?)\}', '', tmpd)
             tmpd = re.sub(r'\{desc:(.*?)\}', '', tmpd)
+            tmpd = re.sub(r'\{comments:(.*?)\}', '', tmpd)
             content[u'cells'][0]['data'] = tmpd
 
     #
@@ -290,7 +304,8 @@ def _convert_qvjson_to_jkmd(note_uuid, notes2post_data, content, post_template,
                                     tags=tags,
                                     created=created,
                                     updated=updated,
-                                    description=description)
+                                    description=description,
+                                    comments_switch=comments_switch)
     return jekyllmd
 
 
@@ -312,58 +327,72 @@ def _convert_qvcell_markdown_format(cell_data):
                 line_in_mode = 'precode_out'
             else:
                 line_in_mode = 'precode_in'
-        elif trimline.startswith('>'):
-            if line_last_mode != 'precode_in':
-                line_in_mode = 'blockquote'
-        elif trimline.startswith(('- ', '* ')):
-            if line_last_mode != 'precode_in':
-                line_in_mode = 'ul'
-        elif trimline.startswith(('-', '*', '_')):
-            if line_last_mode != 'precode_in':
-                if len(trimline
-                       ) > 2 and trimline == trimline[0] * len(trimline):
-                    line_in_mode = 'hr'
-                else:
-                    if last_is_blank:
-                        line_in_mode = 'normal'
-                    else:
-                        line_in_mode = line_last_mode
-        elif trimline.startswith('|'):
-            if line_last_mode != 'precode_in':
-                line_in_mode = 'table'
-        elif trimline == '':
+        else:
             if line_last_mode == 'precode_in':
                 line_in_mode = 'precode_in'
-            elif line_last_mode == 'ul':
-                line_in_mode = 'ul'
             else:
-                line_in_mode = 'normal'
-        else:
-            if line_last_mode == 'ul' and last_is_blank:
-                line_in_mode = 'normal'
-            elif line_last_mode in ['precode_out', 'hr']:
-                line_in_mode = 'normal'
-            else:
-                line_in_mode = line_last_mode
+                if trimline.startswith('#'):
+                    line_in_mode = 'headline'
+                elif trimline.startswith('>'):
+                    line_in_mode = 'blockquote'
+                elif trimline.startswith(('- ', '* ')):
+                    line_in_mode = 'ul'
+                elif trimline.startswith(('-', '*', '_')):
+                    if len(trimline
+                           ) > 2 and trimline == trimline[0] * len(trimline):
+                        line_in_mode = 'hr'
+                    else:
+                        if last_is_blank:
+                            line_in_mode = 'normal'
+                        else:
+                            line_in_mode = line_last_mode
+                elif trimline.startswith('|'):
+                    line_in_mode = 'table'
+                elif trimline == '':  # empty line
+                    if line_last_mode in ['ul', 'ul_subtext']:
+                        if not last_is_blank:
+                            line_in_mode = 'ul_subtext'
+                        else:
+                            line_in_mode = 'normal'
+                    else:
+                        line_in_mode = 'normal'
+                else:
+                    if line_last_mode in ['ul']:
+                        line_in_mode = 'ul_subtext'
+                    elif line_last_mode in ['ul_subtext']:
+                        if last_is_blank:
+                            line_in_mode = 'normal'
+                        else:
+                            line_in_mode = 'ul_subtext'
+                    elif line_last_mode in ['precode_out', 'hr']:
+                        line_in_mode = 'normal'
+                    else:
+                        line_in_mode = 'normal'
 
         # new line
         # print(line_in_mode, '|', trimline)
         if trimline == '':
-            if line_in_mode == 'ul':
+            if line_in_mode == 'ul_subtext':
                 new_line = '&nbsp;'
-            elif line_in_mode == 'normal' and not last_is_blank:
-                new_line = '\n'
             else:
                 new_line = ''
         else:
-            if line_in_mode == 'normal' and line_last_mode == 'ul' and last_is_blank:
+            if line_in_mode == 'headline':
                 new_line = '\n' + line
-            elif line_in_mode == 'table' and line_last_mode != 'table':
+            elif line_in_mode == 'ul_subtext':
+                new_line = '&emsp;&emsp;' + line
+
+                if line_last_mode == 'ul':
+                    new_lines[len(new_lines) - 1] += '  '
+            elif line_last_mode == 'ul_subtext' and last_is_blank and line_in_mode == 'normal':
                 new_line = '\n' + line
-            elif line_in_mode == 'hr':
-                new_line = '<hr />'
             else:
-                new_line = line
+                if line_in_mode == 'table' and line_last_mode != 'table':
+                    new_line = '\n' + line
+                elif line_in_mode == 'hr':
+                    new_line = '<hr />'
+                else:
+                    new_line = line
         #
         new_lines.append(new_line)
 
