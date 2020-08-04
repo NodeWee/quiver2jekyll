@@ -15,11 +15,9 @@ import os
 import sys
 import argparse
 
-
 import _converter as converter
 
 from _funbox import load_jekyll_post_template
-
 
 PY3 = sys.version_info >= (3, )
 ''' shell command configuration '''
@@ -45,6 +43,12 @@ parser.add_argument(
     metavar="RESOURCES_DIR_PATH",
     dest="resources_dir_path",
     help='Directory path to save resource files. Default: resources/')
+
+parser.add_argument('-s',
+                    metavar="RESOURCES_URL_PATH",
+                    dest="resources_url_path",
+                    help='url path of resource files. Default: /resources/')
+
 parser.add_argument('-n',
                     metavar="NOTEBOOK_NAMES",
                     dest="notebook_names",
@@ -73,6 +77,8 @@ def main(args):
     resources_dir_path = args.resources_dir_path if args.resources_dir_path else os.path.join(
         output_dir, 'resources')
 
+    resources_url_path = args.resources_url_path if args.resources_url_path else '/resources/'
+
     #
     notebook_name_overwrite_list = {}
     if args.notebook_names:
@@ -82,7 +88,8 @@ def main(args):
                 name_pair[0].strip()] = name_pair[1].strip()
 
     count = converter.convert(input_path, output_dir, resources_dir_path,
-                              post_template, notebook_name_overwrite_list)
+                              resources_url_path, post_template,
+                              notebook_name_overwrite_list)
     if count:
         print("Converted: {} note(s)".format(count))
     else:

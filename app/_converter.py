@@ -23,14 +23,14 @@ from _funbox import rinseStringToEnglishUrl, existStringAddSerial, makeDirs
 PY3 = sys.version_info >= (3, )
 
 
-def convert(in_path, out_path, resources_dir_path, post_template,
-            notebook_name_overwrite_list):
+def convert(in_path, out_path, resources_dir_path, resources_url_path,
+            post_template, notebook_name_overwrite_list):
     # step 1
     note2PostData, notebookNames = _prepareNotes(in_path)
 
     # step 2
     note2PostData = _prepareMarkdown(note2PostData, notebookNames, out_path,
-                                     resources_dir_path,
+                                     resources_dir_path, resources_url_path,
                                      notebook_name_overwrite_list)
 
     # step 3 | convert .qvnote -> .md
@@ -130,7 +130,8 @@ def _prepareNotes(in_path, draft_sign='_'):
 
 
 def _prepareMarkdown(note2PostData, notebookNames, out_path,
-                     resources_dir_path, notebook_name_overwrite_list):
+                     resources_dir_path, resources_url_path,
+                     notebook_name_overwrite_list):
     '''
     STEP 2
     md file path, and post data
@@ -233,8 +234,7 @@ def _prepareMarkdown(note2PostData, notebookNames, out_path,
         note2PostData[nt_uuid]['md_resources_dir_path'] = os.path.join(
             resources_dir_path, note_created_year)
         # - resources dir url
-        note2PostData[nt_uuid]['md_resources_dir_url'] = '/' + \
-            '/'.join(['resources', note_created_year])
+        note2PostData[nt_uuid]['md_resources_dir_url'] = '/'.join([resources_url_path, note_created_year])
 
     return note2PostData
 
@@ -434,6 +434,7 @@ def _convert_qvcell_resourceLinks(cell_data, note_uuid, notes2post_data):
                 notes2post_data[note_uuid]['md_resources_dir_url'],
                 resource_filename
             ])
+            print(new_resLink)
             if link_pattern.startswith("src="):
                 new_resLink = "src=\"" + new_resLink + "\""
             elif link_pattern.startswith("href="):
