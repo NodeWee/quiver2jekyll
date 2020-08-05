@@ -218,14 +218,16 @@ def _prepareMarkdown(note2PostData, notebookNames, out_path,
         note2PostData[nt_uuid]['md_filepath'] = os.path.join(
             out_path, md_dir_relpath,
             md_filename_date + '-' + md_filename_title + '.md')
+
         # - post url
         url_subdirname = ''
         if ntbk_name == '_posts':
             pass  # url_subdirname = ''
         else:  # is collection dir
             url_subdirname = ntbk_name.lstrip('_')
-        note2PostData[nt_uuid]['post_url'] = '/' + \
-            '/'.join([url_subdirname, md_filename_title])
+        #
+        note2PostData[nt_uuid]['post_url'] = '/' + '/'.join(
+            [url_subdirname, md_filename_title]) + '.html'
 
         # - resources dir path
         note_created_year = time.strftime(
@@ -234,7 +236,8 @@ def _prepareMarkdown(note2PostData, notebookNames, out_path,
         note2PostData[nt_uuid]['md_resources_dir_path'] = os.path.join(
             resources_dir_path, note_created_year)
         # - resources dir url
-        note2PostData[nt_uuid]['md_resources_dir_url'] = '/'.join([resources_url_path, note_created_year])
+        note2PostData[nt_uuid]['md_resources_dir_url'] = '/'.join(
+            [resources_url_path, note_created_year])
 
     return note2PostData
 
