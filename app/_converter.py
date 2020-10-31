@@ -18,7 +18,8 @@ import re
 import time
 import shutil
 
-from _funbox import rinseStringToEnglishUrl, existStringAddSerial, makeDirs
+from _funbox import existStringAddSerial, makeDirs
+from _funbox import clear_english_punctuation, clear_chinese_punctuation, rinse_string_to_url_slug
 
 PY3 = sys.version_info >= (3, )
 
@@ -180,7 +181,7 @@ def _prepareMarkdown(note2PostData, notebookNames, out_path,
                 if matched:
                     meta['user_custom_md_filename'] = matched.groups(
                     )[0].strip()
-                    meta['user_custom_md_filename'] = rinseStringToEnglishUrl(
+                    meta['user_custom_md_filename'] = rinse_string_to_url_slug(
                         meta['user_custom_md_filename'])
                 # option : user custome post description
                 matched = re.search(r'\{desc:(.*?)\}', first_cell_data)
@@ -200,9 +201,13 @@ def _prepareMarkdown(note2PostData, notebookNames, out_path,
         md_filename_date = time.strftime(
             u"%Y-%m-%d", time.localtime(meta.get(u'created_at')))
         md_filename_title = meta.get('user_custom_md_filename')
-        if not md_filename_title:
-            md_filename_title = rinseStringToEnglishUrl(
-                meta.get("title")).lower()
+        # if not md_filename_title:
+        #     md_filename_title = rinseStringToEnglishUrl(
+        #         meta.get("title")).lower()
+        if not md_filename_title:  # 如果没有指定 markdown 文件名，则默认使用文章标题
+            md_filename_title = clear_english_punctuation(
+                clear_chinese_punctuation(meta.get("title"), "-"), "-")
+        md_filename_title = re.sub(r'[-]+', '-', md_filename_title)
         md_filename_title = existStringAddSerial(md_filename_title,
                                                  existMarkdownFileTitle, '-')
         existMarkdownFileTitle.append(
@@ -213,6 +218,7 @@ def _prepareMarkdown(note2PostData, notebookNames, out_path,
                 ntbk_name = notebook_name_overwrite_list[ntbk_name]
 
         # - md file path
+        print(md_filename_title)
         md_dir_relpath = ""
         md_dir_relpath = os.path.join(md_dir_relpath, ntbk_name)
         note2PostData[nt_uuid]['md_filepath'] = os.path.join(
@@ -437,7 +443,7 @@ def _convert_qvcell_resourceLinks(cell_data, note_uuid, notes2post_data):
                 notes2post_data[note_uuid]['md_resources_dir_url'],
                 resource_filename
             ])
-            print(new_resLink)
+            # print(new_resLink)
             if link_pattern.startswith("src="):
                 new_resLink = "src=\"" + new_resLink + "\""
             elif link_pattern.startswith("href="):

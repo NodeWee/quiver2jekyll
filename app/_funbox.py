@@ -7,18 +7,38 @@ import re
 PY3 = sys.version_info >= (3, )
 
 
+def clear_english_punctuation(text, replace_char=""):
+    '''
+    Update: 2020-08-07
+    '''
+    import string
+    find_chars = string.punctuation + string.whitespace
+    for fchar in find_chars:
+        text = text.replace(fchar, replace_char)
+
+    return text
+
+
+def clear_chinese_punctuation(text, replace_char=""):
+    find_chars = '　－。，、＇：∶；?‘’“”〝〞ˆˇ﹕︰﹔﹖﹑·¨….¸;！´？！～—ˉ｜‖＂〃｀@﹫¡¿﹏﹋﹌︴々﹟#﹩$﹠&﹪%*﹡﹢﹦﹤‐￣¯―﹨ˆ˜﹍﹎+=<··＿_-\ˇ~﹉﹊（）〈〉‹›﹛﹜『』〖〗［］《》〔〕「」【】︵︷︿︹︽_﹁﹃︻︶︸﹀︺︾ˉ﹂﹄︼'  # 中文标点符号
+    for fchar in find_chars:
+        text = text.replace(fchar, replace_char)
+
+    return text
+
+
+def rinse_string_to_url_slug(s):
+    slug = re.sub(r'[^a-zA-Z\d\-]', '-', s)
+    slug = hyphenCase(slug)
+    slug = re.sub(r'-+', '-', slug)
+    return slug
+
+
 def hyphenCase(s):
     return '-'.join(
         re.sub('([A-Z][a-z]+)', r' \1',
                re.sub('([A-Z]+)', r' \1', s.replace('-',
                                                     ' '))).split()).lower()
-
-
-def rinseStringToEnglishUrl(s):  # 过滤字符串以符合英文 url 格式
-    ns = re.sub(r'[^a-zA-Z\d\-]', ' ', s)
-    ns = hyphenCase(ns)
-    #
-    return ns if ns else 'untitled'
 
 
 def existStringAddSerial(newStr, strList, separator='', _curI=1):
