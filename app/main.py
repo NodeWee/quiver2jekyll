@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-convert Quiver notes to Jekyll posts
+Quiver2Jekyll - convert Quiver notes to Jekyll posts
 =====
 
-Project Url: https://github.com/nodewee/quiver2jekyll
-Author: nodewee (https://nodewee.github.io)
-License: BSD-3-Clause-Clear
+    Version: 0.1.3
+    Project: https://github.com/nodewee/quiver2jekyll
+    Author: nodewee (https://nodewee.github.io)
+    License: Apache License 2.0
 
 -----
-Enviroment: Python 3
+    Enviroment: Python 3
 """
 
 import os

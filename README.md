@@ -101,23 +101,29 @@ python app/main.py example/example.qvlibrary example/result -n Javascript=web_co
 Quiver 笔记的第一个 cell 选择 markdown 格式，然后按照如下参数格式进行配置。  
 1，指定导出的 markdown 文件名（即博文的 url）  
 ```
-{mdfn:this-post-s-jekyll-file-name}
+<-- config
+mdft:the-post-markdown-file-title
+-->
 ```
-该条笔记导出后的文件名是：`2020-01-17-this-post-s-jekyll-file-name.md`  
-2，指定文章的 Description  
+该条笔记导出后的文件名是：`2020-01-17-the-post-markdown-file-title.md`  
+2，添加更多 jekyll markdown 文件 front matter 的配置参数。每行一个
+
 ```
-{desc:这里是本文的描述或摘要}
+<-- config
+desc:这里是本文的描述或摘要
+toc:true
+-->
 ```
-3，标记草稿笔记  
+3，标记草稿笔记，转换时将跳过  
 笔记的标题前缀下划线“\_”即可。例如：`_note-title`  
 
 可参考 example.qvlibrary
 
 
 
-## 授权
-以 **BSD 3-Clause Clear License** 进行授权。详情请参见 [LICENSE](https://github.com/NodeWee/quiver2jekyll/blob/master/LICENSE) 文件。
+## 开源许可
 
-## TODO / 欢迎一起协作
-- 英文版 README
+基于 [Apache License 2.0](/LICENSE.txt) 条款授权。使用本项目代码时需要保留或标明版权信息。
+
+
 

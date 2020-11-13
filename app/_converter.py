@@ -1,14 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-convert Quiver notes to Jekyll posts
-=====
-
-Project Url: https://github.com/nodewee/quiver2jekyll
-Author: nodewee (https://nodewee.github.io)
-License: BSD-3-Clause-Clear
-
------
-Enviroment: Python 3
+    Project: https://github.com/nodewee/quiver2jekyll
+    Author: nodewee (https://nodewee.github.io)
+    License: Apache License 2.0
 """
 
 import os
@@ -130,6 +124,35 @@ def _prepareNotes(in_path, draft_sign='_'):
     return note2PostData, notebookNames
 
 
+def parse_config_cell(cell_text):
+    '''config cell text example:
+<!-- config
+mdft:use-scriptable-to-add-customize-widgets-on-ios-desktop
+toc:true
+-->
+    '''
+    cell_text = cell_text.strip()
+    if not cell_text.startswith('<!-- config'):
+        return None
+
+    mdfn = ''
+    matters = {}
+    for line in cell_text.split('\n'):
+        if ':' not in line:
+            continue
+
+        if line.startswith('mdft:'):
+            mdfn = line.split(':')[1].strip()
+            continue
+
+        words = line.split(':')
+        _key = words[0].strip()
+        if _key:
+            matters[_key] = words[1].strip()
+
+    return (mdfn, matters)
+
+
 def _prepareMarkdown(note2PostData, notebookNames, out_path,
                      resources_dir_path, resources_url_path,
                      notebook_name_overwrite_list):
@@ -163,44 +186,42 @@ def _prepareMarkdown(note2PostData, notebookNames, out_path,
         meta = json.loads(
             open(os.path.join(nt_path, u'meta.json'), u'rt',
                  encoding=u'utf-8').read())
+        note2PostData[nt_uuid]['meta'] = meta
 
-        # read Q2J post config from first cell which type is markdown,
-        # and add config data to meta data dict
+        # read Q2J post config from config cell
+        # and add config data to n2p data dict
         content = json.loads(
             open(os.path.join(nt_path, u'content.json'),
                  u'rt',
                  encoding=u'utf-8').read())
         if len(content[u'cells']) > 0:
             if content[u'cells'][0]['type'] == 'markdown':
+                r = parse_config_cell(content[u'cells'][0]['data'])
+                if r is None:  # the cell is not config cell
+                    note2PostData[nt_uuid]['file_title'] = None
+                    note2PostData[nt_uuid]['matters'] = None
+                else:  # the cell is config cell
+                    if r[0]:
+                        note2PostData[nt_uuid][
+                            'file_title'] = rinse_string_to_url_slug(r[0])
+                    #
+                    note2PostData[nt_uuid]['matters'] = r[1]
 
-                first_cell_data = content[u'cells'][0]['data']
-                # 每篇文章的可配置项
-
-                # option : user custome md filename
-                matched = re.search(r'\{mdfn:(.*?)\}', first_cell_data)
-                if matched:
-                    meta['user_custom_md_filename'] = matched.groups(
-                    )[0].strip()
-                    meta['user_custom_md_filename'] = rinse_string_to_url_slug(
-                        meta['user_custom_md_filename'])
-                # option : user custome post description
-                matched = re.search(r'\{desc:(.*?)\}', first_cell_data)
-                if matched:
-                    meta['user_custom_post_description'] = matched.groups(
-                    )[0].strip()
-                # option | comments switch (for discus)
-                matched = re.search(r'\{comments:(.*?)\}', first_cell_data)
-                if matched:
-                    meta['user_custom_comments_switch'] = matched.groups(
-                    )[0].strip()
-
+                # matched = re.search(r'\{desc:(.*?)\}', first_cell_data)
+                # if matched:
+                #     meta['user_custom_post_description'] = matched.groups(
+                #     )[0].strip()
+                # # option | comments switch
+                # matched = re.search(r'\{comments:(.*?)\}', first_cell_data)
+                # if matched:
+                #     meta['user_custom_comments_switch'] = matched.groups(
+                #     )[0].strip()
         #
-        note2PostData[nt_uuid]['meta'] = meta
 
         # - md filename (date part & title part)
         md_filename_date = time.strftime(
             u"%Y-%m-%d", time.localtime(meta.get(u'created_at')))
-        md_filename_title = meta.get('user_custom_md_filename')
+        md_filename_title = note2PostData[nt_uuid]['file_title']
         # if not md_filename_title:
         #     md_filename_title = rinseStringToEnglishUrl(
         #         meta.get("title")).lower()
@@ -264,22 +285,12 @@ def _convert_qvjson_to_jkmd(note_uuid, notes2post_data, content, post_template,
     tags = ''
     for tag in meta.get(u'tags'):
         tags += "\n - " + tag
-    description = meta.get('user_custom_post_description')
-    if not description:
-        description = ''
 
-    comments_switch = meta.get('user_custom_comments_switch')
-    if comments_switch is None:
-        comments_switch = 'true'
-
-    # clear user custom Q2J post config (in first cell which type is markdown
+    # clear config cell
     if content.get(u'cells'):
         if content[u'cells'][0]['type'] == 'markdown':
-            tmpd = content[u'cells'][0]['data']
-            tmpd = re.sub(r'\{mdfn:(.*?)\}', '', tmpd)
-            tmpd = re.sub(r'\{desc:(.*?)\}', '', tmpd)
-            tmpd = re.sub(r'\{comments:(.*?)\}', '', tmpd)
-            content[u'cells'][0]['data'] = tmpd
+            if parse_config_cell(content[u'cells'][0]['data']) is not None:
+                content[u'cells'][0]['data'] = ''
 
     #
     new_content = u''
@@ -307,14 +318,21 @@ def _convert_qvjson_to_jkmd(note_uuid, notes2post_data, content, post_template,
             new_content += u'\n' + cell['data'] + u'\n'
     # end for
 
+    #
+    more_matters = ''
+    matters = notes2post_data[note_uuid]['matters']
+    if matters:
+        for _key in matters:
+            more_matters += '\n' + _key + ': ' + matters[_key]
+    # print(more_matters)
+
     jekyllmd = post_template.format(title=title,
                                     content=new_content,
                                     uuid=note_uuid,
                                     tags=tags,
                                     created=created,
                                     updated=updated,
-                                    description=description,
-                                    comments_switch=comments_switch)
+                                    more_matters=more_matters)
     return jekyllmd
 
 

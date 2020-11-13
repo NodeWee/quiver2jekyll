@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+    Project: https://github.com/nodewee/quiver2jekyll
+    Author: nodewee (https://nodewee.github.io)
+    License: Apache License 2.0
+"""
 
 import os
 import sys

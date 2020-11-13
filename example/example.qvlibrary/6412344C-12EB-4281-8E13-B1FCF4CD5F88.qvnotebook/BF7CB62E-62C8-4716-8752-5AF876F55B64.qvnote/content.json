@@ -3,7 +3,11 @@
   "cells": [
     {
       "type": "markdown",
-      "data": "{jkfn:if-statement}\n\n基本语法：\n```python\nif 判断条件:\n    执行语句……\nelse:\n    执行语句……\n```"
+      "data": "<!-- config\nmdft:if-statement\ncomments:true\n-->"
+    },
+    {
+      "type": "markdown",
+      "data": "\n基本语法：\n```python\nif 判断条件:\n    执行语句……\nelse:\n    执行语句……\n```"
     }
   ]
 }
