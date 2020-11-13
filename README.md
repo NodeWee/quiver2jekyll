@@ -82,8 +82,7 @@ python app/main.py example/example.qvlibrary example/result -t path_of_my_markdo
 `{content}` 笔记正文，  
 `{created}` 笔记创建时间，  
 `{updated}` 笔记更新时间  
-`{description}` 文章的 Description  
-
+`{more_matters}` 更多自定义的 front matter 设置项  
 
 ◉ 单个笔记本的设置项  
 1，标记草稿笔记本  
